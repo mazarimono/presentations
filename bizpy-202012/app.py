@@ -1,4 +1,6 @@
 from datetime import date
+import random
+import os
 
 import dash
 import dash_core_components as dcc
@@ -50,6 +52,8 @@ bottom_css = {
 # application
 
 app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+
+server = app.server
 
 app.config.suppress_callback_exceptions = True
 
@@ -501,16 +505,53 @@ final = html.Div(
     ]
 )
 
-# present
-
-present = html.Div([html.H1("書籍プレゼント抽選", style=title_css),])
-
 
 @app.callback(Output("kattene", "hidden"), Input("mark_button", "n_clicks"))
 def update_h1(n_clicks):
     if n_clicks % 2 == 1:
         return False
     return True
+
+
+# present
+
+data = pd.read_html(
+    "https://bizpy.connpass.com/event/195382/participation/#participants"
+)
+
+part_2 = data[1]
+part_2.columns = ["data", "nan"]
+
+present = html.Div(
+    [
+        html.H1("書籍プレゼント抽選", style=title_css),
+        html.Div(
+            [
+                html.Button("抽選", id="chusen", n_clicks=0, style={"width": "10%"}),
+                html.H1(id="tousen", style={"textAlign": "center", "fontSize": "8rem"}),
+                dash_table.DataTable(
+                    id="select_table",
+                    columns=[{"name": i, "id": i} for i in part_2.columns],
+                    data=part_2.to_dict("records"),
+                    fill_width=False,
+                    style_cell={"textAlign": "center", "fontSize": 16},
+                    style_table={"width": "80%", "margin": "auto"},
+                ),
+            ],
+            style={"margin": "auto", "paddingTop": "4%"},
+        ),
+    ]
+)
+
+
+@app.callback(
+    Output("tousen", "children"), Input("chusen", "n_clicks"), prevent_initial_call=True
+)
+def update_shusen(n_clicks):
+    if n_clicks > 0:
+        atari = random.randint(0, len(part_2) + 1)
+        atari_value = part_2.iloc[atari, :].values[0].split("  ")[2]
+        return atari_value
 
 
 # chusen
@@ -590,4 +631,4 @@ def update_slides(pathname):
 
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server()

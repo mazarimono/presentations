@@ -498,6 +498,12 @@ final = html.Div(
                     id="kattene",
                     hidden=True,
                 ),
+                html.H3(
+                    html.A(
+                        "本日のコード",
+                        href="https://github.com/mazarimono/presentations/blob/main/bizpy-202012/app.py"
+                    ), style={"textAlign": "center", "marginTop": "5%",},
+                ),
             ],
             id="mark_button",
             n_clicks=0,
